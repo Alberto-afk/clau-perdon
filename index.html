@@ -34,22 +34,25 @@
 
       <!-- Botón SÍ (pequeño, menos llamativo) -->
       <div class="buttons-area">
+        
+        <!-- Botón SÍ -->
         <button id="btn-yes" class="btn btn-yes" onclick="handleYes()">
           sí, te perdono
         </button>
+
+        <!-- Botón NO flotante (inicia dentro del card para encuadrar perfecto) -->
+        <button id="btn-no" class="btn btn-no"
+          ontouchstart="escapeButton(event)"
+          onmouseover="escapeButton(event)"
+          onclick="escapeButton(event)">
+          no estoy molesta 😤
+        </button>
+
         <p id="attempts-text" class="attempts-text"></p>
       </div>
 
     </div>
   </div>
-
-  <!-- Botón NO flotante (fuera del card para moverse por toda la pantalla) -->
-  <button id="btn-no" class="btn btn-no"
-    ontouchstart="escapeButton(event)"
-    onmouseover="escapeButton(event)"
-    onclick="escapeButton(event)">
-    no estoy molesta 😤
-  </button>
 
   <!-- Pantalla de éxito (cuando perdona) -->
   <div id="success-screen" class="screen">

@@ -69,6 +69,7 @@ window.addEventListener('resize', () => { resizeCanvas(); createParticles(); upd
 let noClickCount  = 0;
 let isMoving      = false;
 let lastZone      = -1;
+let hasEscaped    = false; // Bandera para saber si ya empezó a volar
 
 const ZONES = [
   { xMin: 0.03, xMax: 0.35, yMin: 0.03, yMax: 0.20 },
@@ -82,18 +83,15 @@ const ZONES = [
 ];
 
 function initNoButton() {
-  btnNo.style.position  = 'fixed';
-  btnNo.style.zIndex    = '999';
+  // Limpia estilos de vuelo para que vuelva al flujo de la tarjeta (encuadre inicial óptimo)
+  btnNo.style.position   = '';
+  btnNo.style.zIndex     = '';
+  btnNo.style.left       = '';
+  btnNo.style.top        = '';
   btnNo.style.transition = 'none';
-
-  const bw = btnNo.offsetWidth;
-  const bh = btnNo.offsetHeight;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-
-  btnNo.style.left = Math.max(8, (vw - bw) / 2) + 'px';
-  btnNo.style.top  = (vh * 0.72) + 'px';
-  lastZone = 6; // abajo-centro
+  hasEscaped             = false;
+  noClickCount           = 0;
+  updateButtonSizes();
 }
 
 function pickZone() {
@@ -110,6 +108,13 @@ function moveNoButton() {
   isMoving = true;
 
   noClickCount++;
+
+  // En el primer touch/hover, forzamos position fixed para sacarlo del card y hacerlo volar
+  if (!hasEscaped) {
+    btnNo.style.position = 'fixed';
+    btnNo.style.zIndex   = '9999';
+    hasEscaped = true;
+  }
 
   // Actualizar los tamaños de ambos botones primero
   updateButtonSizes();
@@ -128,10 +133,10 @@ function moveNoButton() {
   let newX = zone.xMin * vw + Math.random() * Math.max(0, xRange);
   let newY = zone.yMin * vh + Math.random() * Math.max(0, yRange);
 
-  newX = Math.max(6, Math.min(newX, vw - bw - 6));
-  newY = Math.max(6, Math.min(newY, vh - bh - 6));
+  newX = Math.max(8, Math.min(newX, vw - bw - 8));
+  newY = Math.max(8, Math.min(newY, vh - bh - 8));
 
-  btnNo.style.transition = 'left 0.28s cubic-bezier(0.34,1.56,0.64,1), top 0.28s cubic-bezier(0.34,1.56,0.64,1)';
+  btnNo.style.transition = 'left 0.26s cubic-bezier(0.34,1.56,0.64,1), top 0.26s cubic-bezier(0.34,1.56,0.64,1)';
   btnNo.style.left = newX + 'px';
   btnNo.style.top  = newY + 'px';
 
@@ -143,7 +148,7 @@ function moveNoButton() {
   attemptsText.classList.add('visible');
   attemptsText.innerHTML = `¡Puedo hacer esto todo el día! 💪🔥 (Intentos: ${noClickCount})`;
 
-  setTimeout(() => { isMoving = false; }, 300);
+  setTimeout(() => { isMoving = false; }, 280);
 }
 
 // Actualiza los tamaños de ambos botones
@@ -181,6 +186,8 @@ function updateButtonSizes() {
   // Si ya ha intentado más de 2 veces, activamos el fondo gradient llamativo rojo/rosa premium en el botón SÍ
   if (noClickCount >= 2) {
     btnYes.classList.add('glow-active');
+  } else {
+    btnYes.classList.remove('glow-active');
   }
 }
 
@@ -243,11 +250,11 @@ function launchConfetti() {
 // INIT
 // ──────────────────────────────────────────────
 window.addEventListener('load', () => {
-  setTimeout(initNoButton, 120);
+  initNoButton();
 });
 
 window.addEventListener('resize', () => {
-  setTimeout(initNoButton, 120);
+  initNoButton();
 });
 
 // Prevenir scroll en móvil
