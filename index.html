@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="particles-canvas"></canvas>
     <div class="container">
         <div class="image-container">
             <img id="dogImg" src="perro-triste.png" alt="Perrito triste">
@@ -20,10 +21,13 @@
             <button id="noBtn">No estoy molesta 😠</button>
         </div>
         
+        <div id="attempts-container" class="hidden">(Intentos: <span id="attempts">0</span>)</div>
+        
         <div id="finalMessage" class="hidden">¡Sabía que me perdonarías! 😊</div>
     </div>
     
     <audio id="audio" src="minimax.mp3"></audio>
+    <audio id="audioNo" src="porfavor_pipi.mp3"></audio>
     <script src="script.js"></script>
 </body>
 </html>
