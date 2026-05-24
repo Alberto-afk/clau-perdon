@@ -13,6 +13,7 @@ const mainScreen    = document.getElementById('main-screen');
 const successScreen = document.getElementById('success-screen');
 const audio         = document.getElementById('perdona-audio');
 const canvas        = document.getElementById('particles-canvas');
+const attemptsText  = document.getElementById('attempts-text');
 const ctx           = canvas.getContext('2d');
 
 // ──────────────────────────────────────────────
@@ -60,33 +61,23 @@ function drawParticles() {
 resizeCanvas();
 createParticles();
 drawParticles();
-window.addEventListener('resize', () => { resizeCanvas(); createParticles(); updateNoButtonSize(); });
+window.addEventListener('resize', () => { resizeCanvas(); createParticles(); updateButtonSizes(); });
 
 // ──────────────────────────────────────────────
-// BOTÓN "NO" — SE MUEVE POR TODA LA PANTALLA
+// BOTÓN "NO" — SE MUEVE POR TODA LA PANTALLA Y SE ACHICA
 // ──────────────────────────────────────────────
 let noClickCount  = 0;
 let isMoving      = false;
 let lastZone      = -1;
 
-// 8 zonas de la pantalla para que se note bien el movimiento
 const ZONES = [
-  // [xFactor_start, yFactor_start, xFactor_end, yFactor_end]
-  // arriba-izquierda
   { xMin: 0.03, xMax: 0.35, yMin: 0.03, yMax: 0.20 },
-  // arriba-centro
   { xMin: 0.30, xMax: 0.65, yMin: 0.03, yMax: 0.18 },
-  // arriba-derecha
   { xMin: 0.55, xMax: 0.90, yMin: 0.03, yMax: 0.20 },
-  // medio-izquierda
   { xMin: 0.02, xMax: 0.20, yMin: 0.35, yMax: 0.65 },
-  // medio-derecha
   { xMin: 0.72, xMax: 0.95, yMin: 0.35, yMax: 0.65 },
-  // abajo-izquierda
   { xMin: 0.03, xMax: 0.35, yMin: 0.72, yMax: 0.92 },
-  // abajo-centro
   { xMin: 0.30, xMax: 0.65, yMin: 0.76, yMax: 0.94 },
-  // abajo-derecha
   { xMin: 0.55, xMax: 0.90, yMin: 0.72, yMax: 0.92 },
 ];
 
@@ -95,7 +86,6 @@ function initNoButton() {
   btnNo.style.zIndex    = '999';
   btnNo.style.transition = 'none';
 
-  // Posición inicial: abajo-centro
   const bw = btnNo.offsetWidth;
   const bh = btnNo.offsetHeight;
   const vw = window.innerWidth;
@@ -107,7 +97,6 @@ function initNoButton() {
 }
 
 function pickZone() {
-  // Elige una zona aleatoria distinta a la actual
   let zone;
   do {
     zone = Math.floor(Math.random() * ZONES.length);
@@ -119,6 +108,11 @@ function pickZone() {
 function moveNoButton() {
   if (isMoving) return;
   isMoving = true;
+
+  noClickCount++;
+
+  // Actualizar los tamaños de ambos botones primero
+  updateButtonSizes();
 
   const bw = btnNo.offsetWidth;
   const bh = btnNo.offsetHeight;
@@ -134,35 +128,60 @@ function moveNoButton() {
   let newX = zone.xMin * vw + Math.random() * Math.max(0, xRange);
   let newY = zone.yMin * vh + Math.random() * Math.max(0, yRange);
 
-  // Clampar para que no salga de pantalla
   newX = Math.max(6, Math.min(newX, vw - bw - 6));
   newY = Math.max(6, Math.min(newY, vh - bh - 6));
 
-  // Transición rápida y elástica
   btnNo.style.transition = 'left 0.28s cubic-bezier(0.34,1.56,0.64,1), top 0.28s cubic-bezier(0.34,1.56,0.64,1)';
   btnNo.style.left = newX + 'px';
   btnNo.style.top  = newY + 'px';
 
-  // Animación de "pulse"
   btnNo.classList.remove('pulse');
   void btnNo.offsetWidth;
   btnNo.classList.add('pulse');
 
-  noClickCount++;
-  updateNoButtonSize();
+  // Actualizar el texto del contador al estilo de tu captura
+  attemptsText.classList.add('visible');
+  attemptsText.innerHTML = `¡Puedo hacer esto todo el día! 💪🔥 (Intentos: ${noClickCount})`;
 
-  setTimeout(() => { isMoving = false; }, 320);
+  setTimeout(() => { isMoving = false; }, 300);
 }
 
-// El botón crece y brilla más con cada intento
-function updateNoButtonSize() {
-  const base   = window.innerWidth <= 420 ? 17 : 20;
-  const growth = Math.min(noClickCount * 0.055, 0.55);
-  const fs     = Math.min(base * (1 + growth), 30);
-  const pv     = Math.min(16 * (1 + growth), 28);
-  const ph     = Math.min(28 * (1 + growth), 50);
-  btnNo.style.fontSize = fs + 'px';
-  btnNo.style.padding  = `${pv}px ${ph}px`;
+// Actualiza los tamaños de ambos botones
+function updateButtonSizes() {
+  // 1. EL BOTÓN "NO" SE VA ACHICANDO
+  const noBaseFontSize = window.innerWidth <= 420 ? 17 : 20;
+  // Factor de escala: reduce un 6.5% por cada intento, hasta un mínimo del 30% del tamaño original
+  const shrinkScale = Math.max(1 - (noClickCount * 0.065), 0.3);
+  
+  const noFs = noBaseFontSize * shrinkScale;
+  const noPv = Math.max(18 * shrinkScale, 6);
+  const noPh = Math.max(32 * shrinkScale, 14);
+  const noMinW = Math.max(200 * shrinkScale, 70);
+
+  btnNo.style.fontSize  = noFs + 'px';
+  btnNo.style.padding   = `${noPv}px ${noPh}px`;
+  btnNo.style.minWidth  = noMinW + 'px';
+
+  // 2. EL BOTÓN "SÍ" SE HACE CADA VEZ MÁS GRANDE (COMO EN LA CAPTURA)
+  // Factor de crecimiento: sube exponencialmente o lineal con cada intento
+  const growthScale = 1 + (noClickCount * 0.16); // 16% más grande por cada intento
+  
+  const yesBaseFontSize = 13;
+  const yesFs = Math.min(yesBaseFontSize * growthScale, 36); // cap at 36px
+  const yesPv = Math.min(11 * growthScale, 28);
+  const yesPh = Math.min(28 * growthScale, 72);
+  const yesMinW = Math.min(140 * growthScale, 340);
+  const yesRadius = Math.min(50 * growthScale, 24); // se vuelve más cuadrado como un gran botón principal
+
+  btnYes.style.fontSize     = yesFs + 'px';
+  btnYes.style.padding      = `${yesPv}px ${yesPh}px`;
+  btnYes.style.minWidth     = yesMinW + 'px';
+  btnYes.style.borderRadius = yesRadius + 'px';
+
+  // Si ya ha intentado más de 2 veces, activamos el fondo gradient llamativo rojo/rosa premium en el botón SÍ
+  if (noClickCount >= 2) {
+    btnYes.classList.add('glow-active');
+  }
 }
 
 function escapeButton(e) {
@@ -175,21 +194,17 @@ function escapeButton(e) {
 // BOTÓN "SÍ ME PERDONAS"
 // ──────────────────────────────────────────────
 function handleYes() {
-  // Cambiar perro triste → feliz
   dogSad.classList.remove('active');
   dogHappy.classList.add('active');
 
-  // Reproducir audio
   audio.currentTime = 0;
   audio.play().catch(() => {
     document.addEventListener('touchend', () => audio.play(), { once: true });
     document.addEventListener('click',    () => audio.play(), { once: true });
   });
 
-  // Ocultar botón "no"
   btnNo.style.display = 'none';
 
-  // Transición a pantalla de éxito
   setTimeout(() => {
     mainScreen.classList.remove('active');
     successScreen.classList.add('active');
