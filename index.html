@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>¿me perdonas? 🥺</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Fondo de partículas -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Pantalla principal -->
+  <div id="main-screen" class="screen active">
+    <div class="card">
+
+      <!-- Imagen del perro (triste → feliz) -->
+      <div class="dog-container">
+        <img id="dog-sad" src="perro-triste.png" alt="perrito triste" class="dog-img active" />
+        <img id="dog-happy" src="perro-feliz.png" alt="perrito feliz" class="dog-img" />
+      </div>
+
+      <!-- Título -->
+      <div class="title-block">
+        <p class="subtitle">oye…</p>
+        <h1 class="main-title">¿me perdonas? <span class="plead">🥺</span></h1>
+      </div>
+
+      <!-- Botones -->
+      <div class="buttons-area" id="buttons-area">
+
+        <!-- Botón SÍ (pequeño, menos llamativo) -->
+        <button id="btn-yes" class="btn btn-yes" onclick="handleYes()">
+          sí, te perdono
+        </button>
+
+        <!-- Botón NO (grande, muy llamativo, escapa al tacto) -->
+        <button id="btn-no" class="btn btn-no" 
+          ontouchstart="escapeButton(event)" 
+          onmouseover="escapeButton(event)"
+          onclick="escapeButton(event)">
+          no estoy molesta 😤
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Pantalla de éxito (cuando perdona) -->
+  <div id="success-screen" class="screen">
+    <div class="success-card">
+      <img id="dog-happy-big" src="perro-feliz.png" alt="perrito feliz" class="dog-big" />
+      <div class="success-text">
+        <h2>🎉 yaaay!!</h2>
+        <p>gracias por perdonarme 🫶</p>
+        <p class="small-text">lo prometiste, no hay vuelta atrás</p>
+      </div>
+      <div class="confetti-container" id="confetti"></div>
+    </div>
+  </div>
+
+  <audio id="perdona-audio" src="perdon.mp3" preload="auto"></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>
