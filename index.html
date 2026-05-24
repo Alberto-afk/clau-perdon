@@ -32,26 +32,23 @@
         <h1 class="main-title">¿me perdonas? <span class="plead">🥺</span></h1>
       </div>
 
-      <!-- Botones -->
-      <div class="buttons-area" id="buttons-area">
-
-        <!-- Botón SÍ (pequeño, menos llamativo) -->
+      <!-- Botón SÍ (pequeño, menos llamativo) -->
+      <div class="buttons-area">
         <button id="btn-yes" class="btn btn-yes" onclick="handleYes()">
           sí, te perdono
         </button>
-
-        <!-- Botón NO (grande, muy llamativo, escapa al tacto) -->
-        <button id="btn-no" class="btn btn-no" 
-          ontouchstart="escapeButton(event)" 
-          onmouseover="escapeButton(event)"
-          onclick="escapeButton(event)">
-          no estoy molesta 😤
-        </button>
-
       </div>
 
     </div>
   </div>
+
+  <!-- Botón NO flotante (fuera del card para moverse por toda la pantalla) -->
+  <button id="btn-no" class="btn btn-no"
+    ontouchstart="escapeButton(event)"
+    onmouseover="escapeButton(event)"
+    onclick="escapeButton(event)">
+    no estoy molesta 😤
+  </button>
 
   <!-- Pantalla de éxito (cuando perdona) -->
   <div id="success-screen" class="screen">
@@ -66,7 +63,7 @@
     </div>
   </div>
 
-  <audio id="perdona-audio" src="perdon.mp3" preload="auto"></audio>
+  <audio id="perdona-audio" src="minimax.mp3" preload="auto"></audio>
 
   <script src="script.js"></script>
 </body>

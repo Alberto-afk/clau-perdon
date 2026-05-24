@@ -5,16 +5,15 @@
 // ──────────────────────────────────────────────
 // REFERENCIAS DOM
 // ──────────────────────────────────────────────
-const btnNo        = document.getElementById('btn-no');
-const btnYes       = document.getElementById('btn-yes');
-const buttonsArea  = document.getElementById('buttons-area');
-const dogSad       = document.getElementById('dog-sad');
-const dogHappy     = document.getElementById('dog-happy');
-const mainScreen   = document.getElementById('main-screen');
+const btnNo         = document.getElementById('btn-no');
+const btnYes        = document.getElementById('btn-yes');
+const dogSad        = document.getElementById('dog-sad');
+const dogHappy      = document.getElementById('dog-happy');
+const mainScreen    = document.getElementById('main-screen');
 const successScreen = document.getElementById('success-screen');
-const audio        = document.getElementById('perdona-audio');
-const canvas       = document.getElementById('particles-canvas');
-const ctx          = canvas.getContext('2d');
+const audio         = document.getElementById('perdona-audio');
+const canvas        = document.getElementById('particles-canvas');
+const ctx           = canvas.getContext('2d');
 
 // ──────────────────────────────────────────────
 // CANVAS PARTÍCULAS
@@ -48,7 +47,6 @@ function drawParticles() {
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(220, 80, 100, ${p.opacity})`;
     ctx.fill();
-
     p.x += p.speedX;
     p.y += p.speedY;
     if (p.x < 0) p.x = W;
@@ -62,94 +60,111 @@ function drawParticles() {
 resizeCanvas();
 createParticles();
 drawParticles();
-window.addEventListener('resize', () => { resizeCanvas(); createParticles(); });
+window.addEventListener('resize', () => { resizeCanvas(); createParticles(); updateNoButtonSize(); });
 
 // ──────────────────────────────────────────────
-// POSICIÓN DINÁMICA DEL BOTÓN "NO"
+// BOTÓN "NO" — SE MUEVE POR TODA LA PANTALLA
 // ──────────────────────────────────────────────
-let noEscapeEnabled  = true;  // empieza en modo "escapa"
-let noClickCount     = 0;     // cuántas veces intentó presionarlo
-let isMoving         = false;
+let noClickCount  = 0;
+let isMoving      = false;
+let lastZone      = -1;
 
-function getAreaBounds() {
-  const rect = buttonsArea.getBoundingClientRect();
-  return rect;
-}
+// 8 zonas de la pantalla para que se note bien el movimiento
+const ZONES = [
+  // [xFactor_start, yFactor_start, xFactor_end, yFactor_end]
+  // arriba-izquierda
+  { xMin: 0.03, xMax: 0.35, yMin: 0.03, yMax: 0.20 },
+  // arriba-centro
+  { xMin: 0.30, xMax: 0.65, yMin: 0.03, yMax: 0.18 },
+  // arriba-derecha
+  { xMin: 0.55, xMax: 0.90, yMin: 0.03, yMax: 0.20 },
+  // medio-izquierda
+  { xMin: 0.02, xMax: 0.20, yMin: 0.35, yMax: 0.65 },
+  // medio-derecha
+  { xMin: 0.72, xMax: 0.95, yMin: 0.35, yMax: 0.65 },
+  // abajo-izquierda
+  { xMin: 0.03, xMax: 0.35, yMin: 0.72, yMax: 0.92 },
+  // abajo-centro
+  { xMin: 0.30, xMax: 0.65, yMin: 0.76, yMax: 0.94 },
+  // abajo-derecha
+  { xMin: 0.55, xMax: 0.90, yMin: 0.72, yMax: 0.92 },
+];
 
-function getButtonSize() {
-  return {
-    w: btnNo.offsetWidth,
-    h: btnNo.offsetHeight,
-  };
-}
-
-function getRandomPosition() {
-  const area   = getAreaBounds();
-  const btn    = getButtonSize();
-  const margin = 10;
-
-  const maxX = area.width  - btn.w - margin;
-  const maxY = area.height - btn.h - margin;
-
-  return {
-    x: margin + Math.random() * maxX,
-    y: margin + Math.random() * maxY,
-  };
-}
-
-// Hace que el botón "no" tenga posición absoluta dentro de buttonsArea
 function initNoButton() {
-  btnNo.style.position = 'absolute';
-  // Colocación inicial centrada
-  const area = getAreaBounds();
-  const btn  = getButtonSize();
-  btnNo.style.left = ((area.width - btn.w) / 2) + 'px';
-  btnNo.style.top  = '0px';
+  btnNo.style.position  = 'fixed';
+  btnNo.style.zIndex    = '999';
+  btnNo.style.transition = 'none';
+
+  // Posición inicial: abajo-centro
+  const bw = btnNo.offsetWidth;
+  const bh = btnNo.offsetHeight;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  btnNo.style.left = Math.max(8, (vw - bw) / 2) + 'px';
+  btnNo.style.top  = (vh * 0.72) + 'px';
+  lastZone = 6; // abajo-centro
+}
+
+function pickZone() {
+  // Elige una zona aleatoria distinta a la actual
+  let zone;
+  do {
+    zone = Math.floor(Math.random() * ZONES.length);
+  } while (zone === lastZone);
+  lastZone = zone;
+  return ZONES[zone];
 }
 
 function moveNoButton() {
-  if (!noEscapeEnabled || isMoving) return;
+  if (isMoving) return;
   isMoving = true;
 
-  const pos  = getRandomPosition();
-  const area = getAreaBounds();
-  const btn  = getButtonSize();
+  const bw = btnNo.offsetWidth;
+  const bh = btnNo.offsetHeight;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
 
-  // Asegurar que no se salga de los límites
-  const safeX = Math.max(0, Math.min(pos.x, area.width  - btn.w));
-  const safeY = Math.max(0, Math.min(pos.y, area.height - btn.h));
+  const zone = pickZone();
 
-  btnNo.style.transition = 'left 0.22s cubic-bezier(0.34,1.56,0.64,1), top 0.22s cubic-bezier(0.34,1.56,0.64,1)';
-  btnNo.style.left = safeX + 'px';
-  btnNo.style.top  = safeY + 'px';
+  // Posición dentro de la zona elegida
+  const xRange = (zone.xMax - zone.xMin) * vw - bw;
+  const yRange = (zone.yMax - zone.yMin) * vh - bh;
 
-  // Quitar la clase pulse si está y añadir nueva
+  let newX = zone.xMin * vw + Math.random() * Math.max(0, xRange);
+  let newY = zone.yMin * vh + Math.random() * Math.max(0, yRange);
+
+  // Clampar para que no salga de pantalla
+  newX = Math.max(6, Math.min(newX, vw - bw - 6));
+  newY = Math.max(6, Math.min(newY, vh - bh - 6));
+
+  // Transición rápida y elástica
+  btnNo.style.transition = 'left 0.28s cubic-bezier(0.34,1.56,0.64,1), top 0.28s cubic-bezier(0.34,1.56,0.64,1)';
+  btnNo.style.left = newX + 'px';
+  btnNo.style.top  = newY + 'px';
+
+  // Animación de "pulse"
   btnNo.classList.remove('pulse');
-  void btnNo.offsetWidth; // reflow
+  void btnNo.offsetWidth;
   btnNo.classList.add('pulse');
 
   noClickCount++;
   updateNoButtonSize();
 
-  setTimeout(() => { isMoving = false; }, 280);
+  setTimeout(() => { isMoving = false; }, 320);
 }
 
-// Cuanto más intenta, más grande y llamativo se hace el botón
+// El botón crece y brilla más con cada intento
 function updateNoButtonSize() {
-  const scale = 1 + Math.min(noClickCount * 0.04, 0.4);
-  // Escalamos padding y font-size dinámicamente
-  const baseFontSize   = window.innerWidth <= 420 ? 17 : 21;
-  const newFontSize    = Math.min(baseFontSize * scale, 28);
-  const basePadV       = window.innerWidth <= 420 ? 16 : 18;
-  const basePadH       = window.innerWidth <= 420 ? 26 : 32;
-  const newPadV        = Math.min(basePadV * scale, 26);
-  const newPadH        = Math.min(basePadH * scale, 44);
-
-  btnNo.style.fontSize  = newFontSize + 'px';
-  btnNo.style.padding   = `${newPadV}px ${newPadH}px`;
+  const base   = window.innerWidth <= 420 ? 17 : 20;
+  const growth = Math.min(noClickCount * 0.055, 0.55);
+  const fs     = Math.min(base * (1 + growth), 30);
+  const pv     = Math.min(16 * (1 + growth), 28);
+  const ph     = Math.min(28 * (1 + growth), 50);
+  btnNo.style.fontSize = fs + 'px';
+  btnNo.style.padding  = `${pv}px ${ph}px`;
 }
 
-// Escapa en touch/hover/click
 function escapeButton(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -160,18 +175,21 @@ function escapeButton(e) {
 // BOTÓN "SÍ ME PERDONAS"
 // ──────────────────────────────────────────────
 function handleYes() {
-  // 1. Cambiar el perro: triste → feliz
+  // Cambiar perro triste → feliz
   dogSad.classList.remove('active');
   dogHappy.classList.add('active');
 
-  // 2. Reproducir audio
+  // Reproducir audio
   audio.currentTime = 0;
   audio.play().catch(() => {
-    // autoplay bloqueado — intentar al siguiente click
-    document.addEventListener('click', () => audio.play(), { once: true });
+    document.addEventListener('touchend', () => audio.play(), { once: true });
+    document.addEventListener('click',    () => audio.play(), { once: true });
   });
 
-  // 3. Transición de pantalla
+  // Ocultar botón "no"
+  btnNo.style.display = 'none';
+
+  // Transición a pantalla de éxito
   setTimeout(() => {
     mainScreen.classList.remove('active');
     successScreen.classList.add('active');
@@ -190,19 +208,17 @@ const CONFETTI_COLORS = [
 
 function launchConfetti() {
   const container = document.getElementById('confetti');
-  const count     = 80;
-
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < 90; i++) {
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';
-    piece.style.left         = Math.random() * 100 + 'vw';
-    piece.style.width        = (Math.random() * 8 + 5) + 'px';
-    piece.style.height       = (Math.random() * 8 + 5) + 'px';
-    piece.style.background   = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
-    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-    piece.style.animationDuration  = (Math.random() * 2.5 + 1.5) + 's';
-    piece.style.animationDelay     = (Math.random() * 0.8) + 's';
-    piece.style.opacity      = Math.random() * 0.7 + 0.3;
+    piece.style.left              = Math.random() * 100 + 'vw';
+    piece.style.width             = (Math.random() * 9 + 5) + 'px';
+    piece.style.height            = (Math.random() * 9 + 5) + 'px';
+    piece.style.background        = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+    piece.style.borderRadius      = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.animationDuration = (Math.random() * 2.5 + 1.5) + 's';
+    piece.style.animationDelay   = (Math.random() * 0.8) + 's';
+    piece.style.opacity           = Math.random() * 0.7 + 0.3;
     container.appendChild(piece);
     setTimeout(() => piece.remove(), 5000);
   }
@@ -212,13 +228,11 @@ function launchConfetti() {
 // INIT
 // ──────────────────────────────────────────────
 window.addEventListener('load', () => {
-  // Pequeño delay para que el DOM esté renderizado y tengamos dimensiones reales
-  setTimeout(initNoButton, 100);
+  setTimeout(initNoButton, 120);
 });
 
-// Re-inicializar en resize (ej: orientación)
 window.addEventListener('resize', () => {
-  setTimeout(initNoButton, 100);
+  setTimeout(initNoButton, 120);
 });
 
 // Prevenir scroll en móvil
